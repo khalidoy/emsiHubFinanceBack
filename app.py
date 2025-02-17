@@ -45,9 +45,7 @@ def register_blueprints(app):
     from routes.accounting import accounting_bp
     from routes.schoolyearperiods import schoolyearperiods_bp
     from routes.reports import reports_bp
-    from routes.creditreports import creditreports_bp
     from routes.dailyaccreport import dailyacc_bp
-    from routes.transportreport import transport_bp  
     from routes.paymentsReport import payments_report_bp
     
     # Register each blueprint with a URL prefix
@@ -58,9 +56,7 @@ def register_blueprints(app):
     app.register_blueprint(accounting_bp, url_prefix='/accounting')
     app.register_blueprint(schoolyearperiods_bp, url_prefix='/schoolyearperiods')
     app.register_blueprint(reports_bp, url_prefix='/reports')
-    app.register_blueprint(creditreports_bp, url_prefix='/creditreports')
     app.register_blueprint(dailyacc_bp, url_prefix='/dailyacc')
-    app.register_blueprint(transport_bp, url_prefix='/transport')
     app.register_blueprint(payments_report_bp, url_prefix='/payments-report')
 
 def setup_logging(app):

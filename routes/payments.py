@@ -12,18 +12,14 @@ payments_bp = Blueprint('payments', __name__)
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Helper function to get the correct field for the month and payment type
+# Updated helper function without transport fields
 def get_field(payment_type, month):
     if payment_type == 'monthly':
         return f"m{month}_real"
-    elif payment_type == 'transport':
-        return f"m{month}_transport_real"
     elif payment_type == 'insurance':
         return 'insurance_real'
     elif payment_type == 'monthly_agreed':
         return f"m{month}_agreed"
-    elif payment_type == 'transport_agreed':
-        return f"m{month}_transport_agreed"
     elif payment_type == 'insurance_agreed':
         return 'insurance_agreed'
     return None
