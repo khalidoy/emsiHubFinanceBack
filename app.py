@@ -11,7 +11,6 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    print(f"MONGO_URI: {os.getenv('MONGO_URI')}")
 
     # Load configuration from Config class
     app.config.from_object(Config)
