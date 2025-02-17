@@ -10,8 +10,9 @@ from datetime import datetime
 
 # Initialize MongoEngine
 db = MongoEngine()
+
 # ----------------------------------------
-# Embedded Documents
+# Embedded Documents (Transport Removed)
 # ----------------------------------------
 
 class ChangeDetail(EmbeddedDocument):
@@ -20,6 +21,7 @@ class ChangeDetail(EmbeddedDocument):
     new_value = StringField()
 
 class AgreedPayments(EmbeddedDocument):
+    # Regular payments (transport fields removed)
     m9_agreed = FloatField(default=0)
     m10_agreed = FloatField(default=0)
     m11_agreed = FloatField(default=0)
@@ -30,21 +32,11 @@ class AgreedPayments(EmbeddedDocument):
     m4_agreed = FloatField(default=0)
     m5_agreed = FloatField(default=0)
     m6_agreed = FloatField(default=0)
-    
-    m9_transport_agreed = FloatField(default=0)
-    m10_transport_agreed = FloatField(default=0)
-    m11_transport_agreed = FloatField(default=0)
-    m12_transport_agreed = FloatField(default=0)
-    m1_transport_agreed = FloatField(default=0)
-    m2_transport_agreed = FloatField(default=0)
-    m3_transport_agreed = FloatField(default=0)
-    m4_transport_agreed = FloatField(default=0)
-    m5_transport_agreed = FloatField(default=0)
-    m6_transport_agreed = FloatField(default=0)
-    
+
     insurance_agreed = FloatField(default=0)
 
 class RealPayments(EmbeddedDocument):
+    # Regular payments (transport fields removed)
     m9_real = FloatField(default=0)
     m10_real = FloatField(default=0)
     m11_real = FloatField(default=0)
@@ -55,18 +47,7 @@ class RealPayments(EmbeddedDocument):
     m4_real = FloatField(default=0)
     m5_real = FloatField(default=0)
     m6_real = FloatField(default=0)
-    
-    m9_transport_real = FloatField(default=0)
-    m10_transport_real = FloatField(default=0)
-    m11_transport_real = FloatField(default=0)
-    m12_transport_real = FloatField(default=0)
-    m1_transport_real = FloatField(default=0)
-    m2_transport_real = FloatField(default=0)
-    m3_transport_real = FloatField(default=0)
-    m4_transport_real = FloatField(default=0)
-    m5_transport_real = FloatField(default=0)
-    m6_transport_real = FloatField(default=0)
-    
+
     insurance_real = FloatField(default=0)
 
 class PaymentInfo(EmbeddedDocument):
@@ -74,7 +55,7 @@ class PaymentInfo(EmbeddedDocument):
     real_payments = EmbeddedDocumentField(RealPayments)
 
 # ----------------------------------------
-# Primary Models
+# Primary Models (Preserved Month 9)
 # ----------------------------------------
 
 class SchoolYearPeriod(Document):
@@ -91,7 +72,7 @@ class SchoolYearPeriod(Document):
 
     def to_json(self):
         return {
-            '_id': {'$oid': str(self.id)}, 
+            '_id': {'$oid': str(self.id)},
             'name': self.name,
             'start_date': self.start_date.isoformat(),
             'end_date': self.end_date.isoformat()
@@ -118,7 +99,6 @@ class User(Document):
         return {
             'id': str(self.id),
             'username': self.username
-            # Do not expose password_hash
         }
 
 class Student(Document):
@@ -126,7 +106,7 @@ class Student(Document):
     school_year = ReferenceField('SchoolYearPeriod', required=True, reverse_delete_rule=CASCADE)
     isNew = BooleanField(default=False)
     isLeft = BooleanField(default=False)
-    joined_month = IntField(min_value=1, max_value=12, default=9)
+    joined_month = IntField(min_value=1, max_value=12, default=9)  # Month 9 preserved
     observations = StringField()
     payments = EmbeddedDocumentField(PaymentInfo)
     left_date = DateTimeField()
@@ -179,32 +159,30 @@ class Save(Document):
             'changes': [change.to_mongo() for change in self.changes]
         }
 
-# Embedded document for Fixed Expenses
 class FixedExpense(EmbeddedDocument):
     expense_type = StringField(required=True)
     expense_amount = FloatField(required=True)
 
-# Main model for monthly expenses (Depence)
 class Depence(Document):
-    type = StringField(required=True)  # For example, 'monthly'
+    type = StringField(required=True)
     description = StringField()
-    date = DateTimeField(required=True)  # The month for which these expenses apply
-    fixed_expenses = ListField(EmbeddedDocumentField(FixedExpense))  # List of fixed expenses for the month
-    amount = FloatField(required=True)  # Total amount for all fixed expenses in that month
+    date = DateTimeField(required=True)
+    fixed_expenses = ListField(EmbeddedDocumentField(FixedExpense))
+    amount = FloatField(required=True)
 
     def to_json(self):
         return {
             "id": str(self.id),
             "type": self.type,
             "description": self.description,
-            "date": self.date.strftime('%Y-%m-%d'),  # Returning the date as a string
+            "date": self.date.strftime('%Y-%m-%d'),
             "fixed_expenses": [
                 {
                     "expense_type": fe.expense_type,
                     "expense_amount": fe.expense_amount
                 } for fe in self.fixed_expenses
             ],
-            "amount": self.amount  # Total amount for the month
+            "amount": self.amount
         }
 
 class Payment(Document):
@@ -212,9 +190,8 @@ class Payment(Document):
     user = ReferenceField('User', required=True, reverse_delete_rule=NULLIFY)
     date = DateTimeField(default=datetime.utcnow)
     amount = FloatField(required=True, min_value=0)
-    payment_type = StringField(choices=[
+    payment_type = StringField(choices=[  # Transport options removed
         'monthly', 'monthly_agreed',
-        'transport', 'transport_agreed',
         'insurance', 'insurance_agreed'
     ], required=True)
     month = IntField(min_value=1, max_value=12, required=False, null=True)
