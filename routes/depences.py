@@ -3,7 +3,7 @@
 from flask import Blueprint, request, jsonify, Response
 from models import Depence, FixedExpense, SchoolYearPeriod
 from mongoengine import DoesNotExist, ValidationError
-from datetime import datetime, timezone
+from datetime import datetime, timezone,timedelta
 from dateutil.relativedelta import relativedelta
 from bson import json_util
 
@@ -29,16 +29,26 @@ def handle_depences(depence_id=None):
     elif request.method == 'DELETE':
         return delete_depence(depence_id)
 
+
+
 def get_depences():
     try:
+        # Use current UTC date (adjust this if needed for testing)
         today = datetime.now(timezone.utc).date()
-        depences = Depence.objects(type='daily', date__date=today)
-        depences_json = json_util.dumps(depences)
+        start = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end = start + timedelta(days=1)
+        print("Querying for depences with date >=", start, "and date <", end)
+        # Use a date range query instead of date__date
+        depences = Depence.objects(type='daily', date__gte=start, date__lt=end)
+        # Convert each document to a dict
+        depences_list = [d.to_mongo().to_dict() for d in depences]
+        # Optionally, wrap the data in an object with a status key
+        response_data = {"status": "success", "data": depences_list}
+        depences_json = json_util.dumps(response_data)
         return Response(depences_json, mimetype='application/json'), 200
     except Exception as e:
         error_response = json_util.dumps({"status": "error", "message": str(e)})
         return Response(error_response, mimetype='application/json'), 500
-
 def get_depence(depence_id):
     try:
         depence = Depence.objects.get(id=depence_id)
